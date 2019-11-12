@@ -90,7 +90,6 @@ def handle_request(url, nthreads, chunk_size, outfile, verify):
         sys.exit()
 
     etag = response.headers['Etag'][1:-1]
-    content_len = response.headers['Content-Length']
 
     if not response.headers['Accept-Ranges'] == 'bytes':
         # Revert to single stream downloading if the server doesn't support
