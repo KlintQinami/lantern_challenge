@@ -110,7 +110,6 @@ if __name__ == '__main__':
     # Check if compressed files work
     # Check if chunked target encoding and other target encodings work
     # chunked_url = "https://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx"
-    # Check graceful exits when erroring out, 404 for example
     # Pick a decent big file as the default URL
     # Verify by comparing files with what curl grabs, automated script would be
     # nice
