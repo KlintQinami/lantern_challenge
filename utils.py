@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 
+
 def generate_file_md5(filename):
     md5 = hashlib.md5()
     chunk_size = md5.block_size
@@ -12,13 +13,27 @@ def generate_file_md5(filename):
     return str(md5.hexdigest())
 
 
+def clip_quotations(s):
+    return s[1:-1]
+
+
 def verify_with_etag(etag, filename):
+    if not etag:
+        print('Warning: no etag provided, cannot verify.')
+        return
+
+    if etag[0] == '"' and etag[-1] == '"':
+        etag = clip_quotations(etag)
+
     computed_tag = generate_file_md5(filename)
 
     if computed_tag == etag:
         print('Successfully verified with etag.')
     else:
         print('Warning: computed md5 tag does not match server etag.')
+
+    print('Computed etag: {}'.format(computed_tag))
+    print('Input etag: {}'.format(etag))
 
 
 def argparser():
