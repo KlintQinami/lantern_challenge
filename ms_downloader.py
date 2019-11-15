@@ -117,13 +117,8 @@ def handle_request(url, nthreads, chunk_size, outfile, verify):
 
 if __name__ == '__main__':
     # TODO:
-    # Profile memory usage
-    # Check if compressed files work
     # Check if chunked target encoding and other target encodings work
     # chunked_url = "https://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx"
-    # Pick a decent big file as the default URL
-    # Verify by comparing files with what curl grabs, automated script would be
-    # nice
 
     args = argparser()
 
