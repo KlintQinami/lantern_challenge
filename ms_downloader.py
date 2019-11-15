@@ -80,6 +80,19 @@ def multi_stream_download(url, nthreads, chunk_size, outfile):
     combine_chunks(chunk_size, outfile)
 
 
+def accepts_range(url, head_response):
+    if head_response.headers['Accept-Ranges'] == 'bytes':
+        return True
+
+    # If the header doesn't specify byte range requests are accepted, we check
+    # manually by sending a byte request for the first byte. If server does
+    # accept, it should return a 206 Partial Content status code.
+    req = urllib.request.Request(url)
+    req.headers['Range'] = 'bytes=0-0'
+    resp = urllib.request.urlopen(req)
+    return resp.code == 206
+
+
 def handle_request(url, nthreads, chunk_size, outfile, verify):
     try:
         request = urllib.request.Request(url, method='HEAD')
@@ -89,16 +102,14 @@ def handle_request(url, nthreads, chunk_size, outfile, verify):
         print(e)
         sys.exit()
 
-    etag = response.headers['Etag'][1:-1]
+    etag = response.headers['Etag']
 
-    if not response.headers['Accept-Ranges'] == 'bytes':
-        # Revert to single stream downloading if the server doesn't support
-        # byte range requests.
+    if accepts_range(url, response):
+        multi_stream_download(url, nthreads, chunk_size, outfile)
+    else:
         print('Server does not accept byte range requests. Reverting to a '
               'single stream download.')
         single_stream_download(url, chunk_size, outfile)
-    else:
-        multi_stream_download(url, nthreads, chunk_size, outfile)
 
     if verify:
         verify_with_etag(etag, outfile)
