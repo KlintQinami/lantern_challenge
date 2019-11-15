@@ -116,10 +116,6 @@ def handle_request(url, nthreads, chunk_size, outfile, verify):
 
 
 if __name__ == '__main__':
-    # TODO:
-    # Check if chunked target encoding and other target encodings work
-    # chunked_url = "https://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx"
-
     args = argparser()
 
     handle_request(
