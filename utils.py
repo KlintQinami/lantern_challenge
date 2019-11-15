@@ -64,7 +64,7 @@ def argparser():
 
     parser.add_argument(
         '--outfile-path',
-        default='./test_file.jpg',
+        default='./test_file',
         help='Path where to save file. Directory will also be used to store '
         'intermediate chunks. Please ensure no name conflicts.',
         type=str
