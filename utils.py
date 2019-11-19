@@ -49,9 +49,9 @@ def argparser():
     )
 
     parser.add_argument(
-        '--nthreads',
+        '--nprocs',
         default=4,
-        help='Number of threads used to download file.',
+        help='Number of processes used to download file.',
         type=int
     )
 
