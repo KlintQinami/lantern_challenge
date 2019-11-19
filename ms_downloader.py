@@ -1,9 +1,8 @@
 import os
-import sys
-import threading
-import urllib
-import requests
 import shutil
+import sys
+import urllib.request
+from multiprocessing import Process
 
 from utils import argparser, verify_with_etag
 
@@ -13,8 +12,8 @@ def single_stream_download(url, buffersize, filename):
         shutil.copyfileobj(r, outfile, buffersize)
 
 
-def download_chunks(thread_idx, url, nthreads, chunk_size, outfile):
-    start_byte = thread_idx*chunk_size
+def download_chunks(proc_idx, url, nprocs, chunk_size, outfile):
+    start_byte = proc_idx*chunk_size
 
     try:
         while True:
@@ -27,7 +26,7 @@ def download_chunks(thread_idx, url, nthreads, chunk_size, outfile):
             with open('{}_{}'.format(outfile, start_byte), 'wb+') as f:
                 f.write(resp)
 
-            start_byte += nthreads*chunk_size
+            start_byte += nprocs*chunk_size
 
     except urllib.error.HTTPError as e:
         # Since we do not assume knowledge of the file size, we terminate when
@@ -62,20 +61,20 @@ def combine_chunks(chunk_size, outfile):
     out.close()
 
 
-def multi_stream_download(url, nthreads, chunk_size, outfile):
+def multi_stream_download(url, nprocs, chunk_size, outfile):
     downloaders = [
-        threading.Thread(
+        Process(
             target=download_chunks,
-            args=(idx, url, nthreads, chunk_size, outfile),
+            args=(idx, url, nprocs, chunk_size, outfile),
         )
-        for idx in range(nthreads)
+        for idx in range(nprocs)
     ]
 
-    for th in downloaders:
-        th.start()
+    for p in downloaders:
+        p.start()
 
-    for th in downloaders:
-        th.join()
+    for p in downloaders:
+        p.join()
 
     combine_chunks(chunk_size, outfile)
 
@@ -93,7 +92,7 @@ def accepts_range(url, head_response):
     return resp.code == 206
 
 
-def handle_request(url, nthreads, chunk_size, outfile, verify):
+def handle_request(url, nprocs, chunk_size, outfile, verify):
     try:
         request = urllib.request.Request(url, method='HEAD')
         response = urllib.request.urlopen(request)
@@ -105,7 +104,7 @@ def handle_request(url, nthreads, chunk_size, outfile, verify):
     etag = response.headers['Etag']
 
     if accepts_range(url, response):
-        multi_stream_download(url, nthreads, chunk_size, outfile)
+        multi_stream_download(url, nprocs, chunk_size, outfile)
     else:
         print('Server does not accept byte range requests. Reverting to a '
               'single stream download.')
@@ -120,7 +119,7 @@ if __name__ == '__main__':
 
     handle_request(
         args.url,
-        args.nthreads,
+        args.nprocs,
         args.chunk_size,
         args.outfile_path,
         args.verify_with_md5
